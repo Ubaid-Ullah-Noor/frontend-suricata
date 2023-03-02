@@ -1,0 +1,36 @@
+// Here you can add other styles
+.sidelogo{
+    background-color: white;
+}
+.sidebar{
+    background-color: #074291;
+}
+a{
+    color:#074291;
+}
+a:hover {
+    color: #01214b;
+  }
+  .form-check-input:checked{
+    background-color: rgb(43, 188, 149);
+    border: none;
+  }
+
+  // .form-check-input{
+  //   border: none;
+  // }
+  .sidebar-nav {
+    padding: 10px !important;
+    background-color: rgb(245, 245, 245) !important;
+  }
+  .sidebar-nav .nav-link.active  {
+    color: rgb(255, 255, 255) !important;
+    background: rgb(7, 66, 145);
+    border-radius: 10px !important;
+  }
+  .sidebar-nav .nav-link, .nav-icon{
+    color: rgb(7, 66, 145) !important;
+  }
+  .sidebar-nav .nav-link.active .nav-icon {
+    color: rgb(255, 255, 255) !important;
+  }
