@@ -24,6 +24,15 @@ const LiveData = () => {
   const [totalRows, setTotalRows] = useState(0)
   const [perPage, setPerPage] = useState(10)
   const [chartData, setChartData] = useState([])
+  // Event type states
+  const [EventType, setEventType] = useState([])
+  const [EventCount, setEventCount] = useState([])
+  
+  //TOP protocols States
+  const [TopProto, setTopProto] = useState([])
+  const [TopProtoCount, setTopProtoCount] = useState([])
+
+
   const setTimeRange = async (range) => {
     let start_date = new Date(range[0]).toISOString()
     let end_date = new Date(range[1]).toISOString()
@@ -95,7 +104,7 @@ const LiveData = () => {
       { offset: page, limit: limit, start_date, end_date },
       authHeader,
     )
-    console.log('------------Table Data------------', response)
+
     const response_data = await responseHandler(response)
     if (response_data) {
       let rows = response_data.rows.map((item) => {
@@ -108,6 +117,44 @@ const LiveData = () => {
       setTableData(rows)
       setTotalRows(response_data.count)
     }
+    console.log('------------Table Data------------', response_data)
+
+    // For Event Type
+    const row = response_data.rows
+
+    const counts = {}
+    const eventTypes = []
+
+    for (const obj of row) {
+      const eventType = obj.event_type
+
+      if (eventType in counts) {
+        counts[eventType]++
+      } else {
+        counts[eventType] = 1
+        eventTypes.push(eventType)
+      }
+    }
+
+    const eventTypeCounts = eventTypes.map((eventType) => counts[eventType])
+
+    setEventType(eventTypes)
+    setEventCount(eventTypeCounts)
+
+    // For UDP TCP Count
+
+    const protoCounts = {}
+    row.forEach((item) => {
+      const proto = JSON.parse(item.logs).proto
+      protoCounts[proto] = (protoCounts[proto] || 0) + 1
+    })
+
+    const uniqueProtos = Object.keys(protoCounts)
+    const protoCountsArray = Object.values(protoCounts)
+
+    setTopProto(uniqueProtos)
+    setTopProtoCount(protoCountsArray)
+
     setLoading(false)
   }
 
@@ -120,14 +167,19 @@ const LiveData = () => {
     fetchLogs(page, newPerPage)
   }
 
-  useEffect(() => {
-    fetchLogs(0)
+  useEffect(
+    () => {
+      fetchLogs(0)
 
-    let start_date = new Date()
-    start_date.setMonth(start_date.getMonth() - 1)
-    let end_date = new Date()
-    fetchChartData(start_date, end_date)
-  }, [reload])
+      let start_date = new Date()
+      start_date.setMonth(start_date.getMonth() - 1)
+      let end_date = new Date()
+      fetchChartData(start_date, end_date)
+    },
+    [reload],
+    [EventCount],
+    [EventType],
+  )
 
   const ExpandedComponent = ({ data }) => <ReactJson src={JSON.parse(data.logs)} />
 
@@ -190,6 +242,80 @@ const LiveData = () => {
         </CCardBody>
       </CCard>
 
+      <CRow>
+        {/* Doughnut Chart For Event Types */}
+
+        <CCol sm={6}>
+          <CCard
+            className="mb-4"
+            style={{ boxShadow: 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px', border: 'none' }}
+          >
+            <CCardBody>
+              <CRow>
+                <CCol className="border-bottom " sm={12}>
+                  <h5 id="traffic" className="card-title mb-2 text-center">
+                    Event Types
+                  </h5>
+                </CCol>
+                <CCol sm={12}>
+                  <CChartDoughnut
+                    data={{
+                      labels: EventType,
+                      datasets: [
+                        {
+                          backgroundColor: [
+                            '#FFF6BD',
+                            '#CEEDC7',
+                            '#86C8BC',
+                            '#ADA2FF',
+                            '#C0DEFF',
+                            '#FFE5F1',
+                            '#FFF8E1',
+                            '#FFD4B2',
+                          ],
+                          data: EventCount,
+                        },
+                      ],
+                    }}
+                  />
+                </CCol>
+              </CRow>
+            </CCardBody>
+          </CCard>
+        </CCol>
+
+        {/* Doughnut Chart For Transport Protocols */}
+
+        <CCol sm={6}>
+          <CCard
+            className="mb-4"
+            style={{ boxShadow: 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px', border: 'none' }}
+          >
+            <CCardBody>
+              <CRow>
+                <CCol className="border-bottom " sm={12}>
+                  <h5 id="traffic" className="card-title mb-2 text-center">
+                    Top Transport Protocols
+                  </h5>
+                </CCol>
+                <CCol sm={12}>
+                  <CChartDoughnut
+                    data={{
+                      labels: TopProto,
+                      datasets: [
+                        {
+                          backgroundColor: ['#C0DEFF', '#FFE5F1'],
+                          data: TopProtoCount,
+                        },
+                      ],
+                    }}
+                  />
+                </CCol>
+              </CRow>
+            </CCardBody>
+          </CCard>
+        </CCol>
+      </CRow>
       {/* Table  */}
 
       <CCard
@@ -222,106 +348,6 @@ const LiveData = () => {
           </CRow>
         </CCardBody>
       </CCard>
-
-      <CRow>
-
-        {/* Doughnut Chart For Event Types */}
-
-        <CCol sm={4}>
-          <CCard
-            className="mb-4"
-            style={{ boxShadow: 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px', border: 'none' }}
-          >
-            <CCardBody>
-              <CRow>
-              <CCol className='border-bottom ' sm={12}>
-              <h5 id="traffic" className="card-title mb-2 text-center">
-                Event Types
-              </h5>
-            </CCol>
-                <CCol sm={12}>
-                  <CChartDoughnut
-                    data={{
-                      labels: ['Stats', 'DNS', 'Alert', 'TLS','Flow', 'DHCP', 'File Info', 'HTTP'],
-                      datasets: [
-                        {
-                          backgroundColor: ['#FFF6BD', '#CEEDC7', '#86C8BC', '#ADA2FF', '#C0DEFF', '#FFE5F1', '#FFF8E1', '#FFD4B2'],
-                          data: [40, 20, 80, 10,58,35,65,25]
-                        },
-                      ],
-                    }}
-                  />
-                </CCol>
-              </CRow>
-            </CCardBody>
-          </CCard>
-        </CCol>
-
-        {/* Doughnut Chart For Transport Protocols */}
-
-        <CCol sm={4}>
-          <CCard
-            className="mb-4"
-            style={{ boxShadow: 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px', border: 'none' }}
-          >
-            <CCardBody>
-              <CRow>
-              <CCol className='border-bottom ' sm={12}>
-              <h5 id="traffic" className="card-title mb-2 text-center">
-                Top Transport Protocols
-              </h5>
-            </CCol>
-                <CCol sm={12}>
-                  <CChartDoughnut
-                    data={{
-                      labels: ['TCP', 'UDP'],
-                      datasets: [
-                        {
-                          backgroundColor: ['#C0DEFF', '#FFE5F1'],
-                          data: [40, 20],
-                        },
-                      ],
-                    }}
-                  />
-                </CCol>
-              </CRow>
-            </CCardBody>
-          </CCard>
-        </CCol>
-
-        {/* Doughnut Chart For Network Protocols */}
-
-        <CCol sm={4}>
-          <CCard
-            className="mb-4"
-            style={{ boxShadow: 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px', border: 'none' }}
-          >
-            <CCardBody>
-              <CRow>
-              <CCol className='border-bottom ' sm={12}>
-              <h5 id="traffic" className="card-title mb-2 text-center">
-                Top Network Protocols
-              </h5>
-            </CCol>
-                <CCol sm={12}>
-                  <CChartDoughnut
-                    data={{
-                      labels: ['DNS', 'TLS','HTTP', 'DHCP', 'NTP'],
-                      datasets: [
-                        {
-                          backgroundColor: ['#FFF6BD', '#CEEDC7', '#86C8BC', '#ADA2FF', '#C0DEFF'],
-                          data: [40, 20, 70, 65,87],
-                        },
-                      ],
-                    }}
-                  />
-                </CCol>
-              </CRow>
-            </CCardBody>
-          </CCard>
-        </CCol>
-
-      </CRow>
     </>
   )
 }

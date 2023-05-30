@@ -40,7 +40,6 @@ const unclusteredPointLayer = {
 }
 
 function MapContainer({locations}) {
-  console.log(locations);
 
   const formatData=(data)=>{
     if(data && data.length>0){

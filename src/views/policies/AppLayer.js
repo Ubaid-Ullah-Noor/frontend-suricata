@@ -32,7 +32,7 @@ import DataTable from 'react-data-table-component'
 
 const AppLayer = () => {
   const { fileName } = useParams()
-  console.log('params:', fileName)
+  console.log('params:-------------------------', fileName)
 
   const [tableData, setTableData] = useState([])
   const [visible, setVisible] = useState(false)

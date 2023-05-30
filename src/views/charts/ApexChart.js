@@ -4,9 +4,8 @@ import ReactApexChart from 'react-apexcharts'
 export default class ApexChart extends Component {
   constructor(props) {
     super(props);
-
     this.state = {
-      series: [75],
+      series: props.series,
       options: {
         chart: {
           height: 350,
@@ -83,10 +82,13 @@ export default class ApexChart extends Component {
         stroke: {
           lineCap: 'round',
         },
-        labels: ['Percent'],
+        labels: [''],
       },
     }
   }
+  componentWillReceiveProps(newProps) {
+    this.setState({series: newProps.series});
+}
 
   render() {
     return (

@@ -79,7 +79,6 @@ const WidgetsDropdown = () => {
 
       const response = await apiService.getHandler('api/system_health', authHeader)
 
-      console.log('-------------------Response health-------------', response)
       const data = await responseHandler(response)
       if (data) {
         setSystemHealthData(data.system_healths)
